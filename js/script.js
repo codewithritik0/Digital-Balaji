@@ -861,7 +861,7 @@ if (!touchQuery.matches && !reducedMotionQuery.matches) {
 
   const interactiveSelector = 'a, button';
   const maxRingTrail = 3;
-  const dotOffset = cursorRing.offsetWidth / 2 + cursorDot.offsetWidth / 2 + 15;
+  const dotEdgeGap = 15;
 
   const setPosition = (element, x, y) => {
     element.style.setProperty('--cursor-x', `${x}px`);
@@ -881,8 +881,8 @@ if (!touchQuery.matches && !reducedMotionQuery.matches) {
       ringY = mouseY + (ringOffsetY / ringDistance) * maxRingTrail;
     }
 
-    dotOffsetX += (dotTargetOffsetX - dotOffsetX) * 0.2;
-    dotOffsetY += (dotTargetOffsetY - dotOffsetY) * 0.2;
+    dotOffsetX += (dotTargetOffsetX - dotOffsetX) * 0.1;
+    dotOffsetY += (dotTargetOffsetY - dotOffsetY) * 0.1;
     if (Math.hypot(dotTargetOffsetX - dotOffsetX, dotTargetOffsetY - dotOffsetY) < 0.1) {
       dotOffsetX = dotTargetOffsetX;
       dotOffsetY = dotTargetOffsetY;
@@ -911,6 +911,9 @@ if (!touchQuery.matches && !reducedMotionQuery.matches) {
     const dy = hasPointerMoved ? event.clientY - mouseY : 0;
     const distance = Math.hypot(dx, dy);
     if (distance > 0) {
+      const ringRadius = cursorRing.getBoundingClientRect().width / 2;
+      const dotRadius = cursorDot.offsetWidth / 2;
+      const dotOffset = ringRadius + dotRadius + dotEdgeGap;
       dotTargetOffsetX = (dx / distance) * dotOffset;
       dotTargetOffsetY = (dy / distance) * dotOffset;
 

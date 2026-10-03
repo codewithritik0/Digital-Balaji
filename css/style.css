@@ -1303,6 +1303,11 @@ body.consultation-popup-open {
 
 
 /* Custom cursor */
+@property --cursor-scale {
+    syntax: "<number>";
+    inherits: false;
+    initial-value: 1;
+}
 body.cursor-enabled { cursor: none; }
 .cursor-dot,
 .cursor-ring {
@@ -1317,7 +1322,7 @@ body.cursor-enabled { cursor: none; }
     border-radius: 50%;
     will-change: transform;
     opacity: 0;
-    transform: translate3d(calc(var(--cursor-x) - 50%), calc(var(--cursor-y) - 50%), 0);
+    transform: translate3d(calc(var(--cursor-x) - 50%), calc(var(--cursor-y) - 50%), 0) scale(var(--cursor-scale));
 }
 body.cursor-visible .cursor-dot,
 body.cursor-visible .cursor-ring {
@@ -1333,8 +1338,7 @@ body.cursor-visible .cursor-ring {
     height: 38px;
     border: 1px solid rgba(37, 99, 235, 0.55);
     background: rgba(37, 99, 235, 0.06);
-    scale: var(--cursor-scale);
-    transition: scale .18s ease, border-color .15s ease, background .15s ease;
+    transition: --cursor-scale .18s ease, border-color .15s ease, background .15s ease;
 }
 .cursor-ring.cursor-hover,
 .cursor-ring.is-active {

@@ -853,13 +853,15 @@ if (!touchQuery.matches && !reducedMotionQuery.matches) {
   let ringY = mouseY;
   let dotOffsetX = 0;
   let dotOffsetY = 0;
+  let dotTargetOffsetX = 0;
+  let dotTargetOffsetY = 0;
   let hasPointerMoved = false;
   let animationFrameId = null;
+  let idleTimerId = null;
 
   const interactiveSelector = 'a, button';
   const maxRingTrail = 3;
-  const maxDotOffset = 9;
-  const dotOffsetInfluence = 3;
+  const dotOffset = cursorRing.offsetWidth / 2 + cursorDot.offsetWidth / 2 + 15;
 
   const setPosition = (element, x, y) => {
     element.style.setProperty('--cursor-x', `${x}px`);
@@ -879,21 +881,18 @@ if (!touchQuery.matches && !reducedMotionQuery.matches) {
       ringY = mouseY + (ringOffsetY / ringDistance) * maxRingTrail;
     }
 
-    let dotTargetOffsetX = (mouseX - ringX) * dotOffsetInfluence;
-    let dotTargetOffsetY = (mouseY - ringY) * dotOffsetInfluence;
-    const dotTargetDistance = Math.hypot(dotTargetOffsetX, dotTargetOffsetY);
-    if (dotTargetDistance > maxDotOffset) {
-      dotTargetOffsetX = (dotTargetOffsetX / dotTargetDistance) * maxDotOffset;
-      dotTargetOffsetY = (dotTargetOffsetY / dotTargetDistance) * maxDotOffset;
-    }
     dotOffsetX += (dotTargetOffsetX - dotOffsetX) * 0.2;
     dotOffsetY += (dotTargetOffsetY - dotOffsetY) * 0.2;
+    if (Math.hypot(dotTargetOffsetX - dotOffsetX, dotTargetOffsetY - dotOffsetY) < 0.1) {
+      dotOffsetX = dotTargetOffsetX;
+      dotOffsetY = dotTargetOffsetY;
+    }
 
     setPosition(cursorRing, ringX, ringY);
     setPosition(cursorDot, ringX + dotOffsetX, ringY + dotOffsetY);
 
     const ringSettled = Math.hypot(mouseX - ringX, mouseY - ringY) < 0.1;
-    const dotSettled = Math.hypot(dotTargetOffsetX - dotOffsetX, dotTargetOffsetY - dotOffsetY) < 0.1;
+    const dotSettled = dotOffsetX === dotTargetOffsetX && dotOffsetY === dotTargetOffsetY;
     if (!ringSettled || !dotSettled) {
       animationFrameId = window.requestAnimationFrame(updateCursorPosition);
     } else {
@@ -908,6 +907,21 @@ if (!touchQuery.matches && !reducedMotionQuery.matches) {
   };
 
   document.addEventListener('mousemove', event => {
+    const dx = hasPointerMoved ? event.clientX - mouseX : 0;
+    const dy = hasPointerMoved ? event.clientY - mouseY : 0;
+    const distance = Math.hypot(dx, dy);
+    if (distance > 0) {
+      dotTargetOffsetX = (dx / distance) * dotOffset;
+      dotTargetOffsetY = (dy / distance) * dotOffset;
+
+      window.clearTimeout(idleTimerId);
+      idleTimerId = window.setTimeout(() => {
+        dotTargetOffsetX = 0;
+        dotTargetOffsetY = 0;
+        requestCursorPositionUpdate();
+      }, 100);
+    }
+
     mouseX = event.clientX;
     mouseY = event.clientY;
     ringX = hasPointerMoved ? ringX : mouseX;

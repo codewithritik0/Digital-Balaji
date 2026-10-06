@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://codewithritik0.github.io/Digital-Balaji/sitemap.xml

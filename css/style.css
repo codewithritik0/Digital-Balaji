@@ -2431,6 +2431,17 @@ body.cursor-enabled {
     cursor: none;
 }
 
+body.cursor-enabled a,
+body.cursor-enabled button,
+body.cursor-enabled summary,
+body.cursor-enabled [role="button"],
+body.cursor-enabled [onclick],
+body.cursor-enabled input[type="button"],
+body.cursor-enabled input[type="submit"],
+body.cursor-enabled input[type="reset"] {
+    cursor: none;
+}
+
 .cursor-dot,
 .cursor-ring {
     --cursor-x: 0px;

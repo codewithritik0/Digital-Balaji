@@ -881,8 +881,8 @@ if (!touchQuery.matches && !reducedMotionQuery.matches) {
       ringY = mouseY + (ringOffsetY / ringDistance) * maxRingTrail;
     }
 
-    dotOffsetX += (dotTargetOffsetX - dotOffsetX) * 0.1;
-    dotOffsetY += (dotTargetOffsetY - dotOffsetY) * 0.1;
+    dotOffsetX += (dotTargetOffsetX - dotOffsetX) * 0.08;
+    dotOffsetY += (dotTargetOffsetY - dotOffsetY) * 0.08;
     if (Math.hypot(dotTargetOffsetX - dotOffsetX, dotTargetOffsetY - dotOffsetY) < 0.1) {
       dotOffsetX = dotTargetOffsetX;
       dotOffsetY = dotTargetOffsetY;

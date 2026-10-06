@@ -1,0 +1,10 @@
+{
+  "name": "Digital Balaji",
+  "short_name": "Digital Balaji",
+  "description": "Digital marketing services including SEO, Local SEO, Google Ads, Social Media Marketing, Content Marketing and Website Development.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#123568",
+  "icons": []
+}

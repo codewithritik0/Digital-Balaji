@@ -79,14 +79,238 @@ document.addEventListener("DOMContentLoaded", () => {
   // Home page consultation popup
 
   const consultationPopup = document.querySelector(".consultation-popup");
-
   let previousBodyOverflow = "";
-
   let previousPopupFocus = null;
-
   let popupCloseTimer;
 
+  const celebrateLeadSubmission = () => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
 
+    let container = document.getElementById("celebration-container");
+
+    if (container && container.dataset.active === "true") {
+      return;
+    }
+
+    if (!container) {
+      container = document.createElement("div");
+      container.id = "celebration-container";
+      container.setAttribute("aria-hidden", "true");
+      document.body.appendChild(container);
+    }
+
+    container.dataset.active = "true";
+    let canvas = container.querySelector("canvas");
+
+    if (!canvas) {
+      canvas = document.createElement("canvas");
+      container.appendChild(canvas);
+    }
+
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      container.remove();
+      throw new Error("Unable to initialize the party celebration canvas.");
+    }
+
+    const colors = ["#ff3f5e", "#ffd52a", "#2589ff", "#31cf70", "#ff54a5", "#a45cff", "#ff872f", "#20d9e8", "#ffffff"];
+    const confetti = [];
+    const flashes = [];
+    const isSmallScreen = window.matchMedia("(max-width: 600px)").matches;
+    let pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+    const startedAt = performance.now();
+    const bursts = [
+      { delay: 0, x: 0.015, y: 0.96, count: isSmallScreen ? 68 : 125, angle: -132, spread: 82, power: 1.15 },
+      { delay: 0, x: 0.24, y: 0.98, count: isSmallScreen ? 58 : 105, angle: -76, spread: 62, power: 1.08 },
+      { delay: 0, x: 0.76, y: 0.98, count: isSmallScreen ? 58 : 105, angle: -104, spread: 62, power: 1.08 },
+      { delay: 0, x: 0.985, y: 0.96, count: isSmallScreen ? 68 : 125, angle: -48, spread: 82, power: 1.15 },
+      { delay: 0, x: 0.01, y: 0.54, count: isSmallScreen ? 42 : 75, angle: -18, spread: 74, power: 0.98 },
+      { delay: 0, x: 0.99, y: 0.54, count: isSmallScreen ? 42 : 75, angle: -162, spread: 74, power: 0.98 },
+      { delay: 420, x: 0.32, y: 0.62, count: isSmallScreen ? 38 : 68, angle: -67, spread: 112, power: 0.94 },
+      { delay: 760, x: 0.68, y: 0.56, count: isSmallScreen ? 38 : 68, angle: -113, spread: 112, power: 0.94 },
+      { delay: 780, x: 0.025, y: 0.09, count: isSmallScreen ? 30 : 52, angle: 0, spread: 300, power: 0.72 },
+      { delay: 780, x: 0.975, y: 0.09, count: isSmallScreen ? 30 : 52, angle: 0, spread: 300, power: 0.72 },
+      { delay: 1220, x: 0.12, y: 0.36, count: isSmallScreen ? 34 : 60, angle: -25, spread: 100, power: 0.88 },
+      { delay: 1220, x: 0.88, y: 0.36, count: isSmallScreen ? 34 : 60, angle: -155, spread: 100, power: 0.88 },
+      { delay: 1840, x: 0.5, y: 0.3, count: isSmallScreen ? 42 : 72, angle: 0, spread: 360, power: 0.82 },
+      { delay: 2540, x: 0.2, y: 0.76, count: isSmallScreen ? 33 : 56, angle: -48, spread: 94, power: 0.88 },
+      { delay: 2540, x: 0.8, y: 0.76, count: isSmallScreen ? 33 : 56, angle: -132, spread: 94, power: 0.88 },
+      { delay: 3420, x: 0.05, y: 0.7, count: isSmallScreen ? 28 : 46, angle: -25, spread: 92, power: 0.84 },
+      { delay: 3420, x: 0.95, y: 0.7, count: isSmallScreen ? 28 : 46, angle: -155, spread: 92, power: 0.84 }
+    ];
+    let nextBurst = 0;
+    let frameId;
+    let lastFrameAt = startedAt;
+    let cleanedUp = false;
+
+    const resizeCanvas = () => {
+      const width = window.innerWidth;
+      const height = window.innerHeight;
+      pixelRatio = Math.min(window.devicePixelRatio || 1, 1.5);
+      canvas.width = Math.round(width * pixelRatio);
+      canvas.height = Math.round(height * pixelRatio);
+      canvas.style.width = `${width}px`;
+      canvas.style.height = `${height}px`;
+      context.setTransform(pixelRatio, 0, 0, pixelRatio, 0, 0);
+    };
+
+    const launchPopper = (burst, now) => {
+      const originX = window.innerWidth * burst.x;
+      const originY = window.innerHeight * burst.y;
+      const baseAngle = burst.angle * Math.PI / 180;
+      const spread = burst.spread * Math.PI / 180;
+      const pieceShapes = ["rectangle", "square", "strip", "circle", "triangle"];
+
+      flashes.push({ x: originX, y: originY, startedAt: now, color: colors[Math.floor(Math.random() * colors.length)] });
+
+      for (let index = 0; index < burst.count; index += 1) {
+        const angle = baseAngle + (Math.random() - 0.5) * spread;
+        const speed = ((isSmallScreen ? 590 : 700) + Math.random() * (isSmallScreen ? 500 : 680)) * burst.power;
+        const shape = pieceShapes[Math.floor(Math.random() * pieceShapes.length)];
+        const size = (isSmallScreen ? 5 : 6) + Math.random() * 8;
+
+        confetti.push({
+          x: originX + (Math.random() - 0.5) * 12,
+          y: originY + (Math.random() - 0.5) * 10,
+          velocityX: Math.cos(angle) * speed,
+          velocityY: Math.sin(angle) * speed,
+          gravity: 280 + Math.random() * 340,
+          drag: 0.982 + Math.random() * 0.014,
+          rotation: Math.random() * Math.PI * 2,
+          rotationSpeed: (Math.random() - 0.5) * 15,
+          width: shape === "strip" ? size * 0.36 : size,
+          height: shape === "strip" ? size * 2.4 : size * (0.65 + Math.random() * 0.9),
+          shape,
+          color: colors[Math.floor(Math.random() * colors.length)],
+          wobble: Math.random() * Math.PI * 2,
+          wobbleSpeed: 2 + Math.random() * 5,
+          startedAt: now,
+          lifetime: 4 + Math.random() * 0.9
+        });
+      }
+    };
+
+    const drawConfetti = (piece, deltaSeconds, now) => {
+      const age = (now - piece.startedAt) / 1000;
+      const fade = Math.min(1, Math.max(0, (piece.lifetime - age) / 0.75));
+
+      piece.velocityX *= Math.pow(piece.drag, deltaSeconds * 60);
+      piece.velocityY *= Math.pow(piece.drag, deltaSeconds * 60);
+      piece.velocityX += Math.sin(piece.wobble) * 18 * deltaSeconds;
+      piece.velocityY += piece.gravity * deltaSeconds;
+      piece.wobble += piece.wobbleSpeed * deltaSeconds;
+      piece.x += piece.velocityX * deltaSeconds;
+      piece.y += piece.velocityY * deltaSeconds;
+      piece.rotation += piece.rotationSpeed * deltaSeconds;
+
+      context.save();
+      context.globalAlpha = fade;
+      context.translate(piece.x, piece.y);
+      context.rotate(piece.rotation);
+      context.fillStyle = piece.color;
+
+      if (piece.shape === "circle") {
+        context.beginPath();
+        context.ellipse(0, 0, piece.width / 2, piece.height / 2, 0, 0, Math.PI * 2);
+        context.fill();
+      } else if (piece.shape === "triangle") {
+        context.beginPath();
+        context.moveTo(0, -piece.height / 2);
+        context.lineTo(piece.width / 2, piece.height / 2);
+        context.lineTo(-piece.width / 2, piece.height / 2);
+        context.closePath();
+        context.fill();
+      } else {
+        context.fillRect(-piece.width / 2, -piece.height / 2, piece.width, piece.height);
+      }
+
+      context.restore();
+    };
+
+    const cleanupCelebration = () => {
+      if (cleanedUp) {
+        return;
+      }
+
+      cleanedUp = true;
+      window.cancelAnimationFrame(frameId);
+      window.removeEventListener("resize", resizeCanvas);
+      window.removeEventListener("orientationchange", resizeCanvas);
+      container.remove();
+    };
+
+    const animate = (now) => {
+      const elapsed = now - startedAt;
+      const deltaSeconds = Math.min((now - lastFrameAt) / 1000, 0.04);
+      lastFrameAt = now;
+
+      while (nextBurst < bursts.length && elapsed >= bursts[nextBurst].delay) {
+        launchPopper(bursts[nextBurst], now);
+        nextBurst += 1;
+      }
+
+      context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+
+      for (let index = flashes.length - 1; index >= 0; index -= 1) {
+        const flash = flashes[index];
+        const progress = (now - flash.startedAt) / 220;
+
+        if (progress >= 1) {
+          flashes.splice(index, 1);
+          continue;
+        }
+
+        context.save();
+        context.globalAlpha = 1 - progress;
+        context.strokeStyle = flash.color;
+        context.lineWidth = 2 + (1 - progress) * 2;
+        context.beginPath();
+        context.arc(flash.x, flash.y, 12 + progress * 46, 0, Math.PI * 2);
+        context.stroke();
+        context.lineWidth = 2.5;
+
+        for (let ray = 0; ray < 14; ray += 1) {
+          const angle = (Math.PI * 2 * ray) / 14;
+          const innerRadius = 13 + progress * 10;
+          const outerRadius = innerRadius + (1 - progress) * 44;
+
+          context.beginPath();
+          context.moveTo(flash.x + Math.cos(angle) * innerRadius, flash.y + Math.sin(angle) * innerRadius);
+          context.lineTo(flash.x + Math.cos(angle) * outerRadius, flash.y + Math.sin(angle) * outerRadius);
+          context.stroke();
+        }
+
+        context.restore();
+      }
+
+      for (let index = confetti.length - 1; index >= 0; index -= 1) {
+        const piece = confetti[index];
+        const age = (now - piece.startedAt) / 1000;
+
+        if (age >= piece.lifetime || piece.y > window.innerHeight + 80 || piece.x < -100 || piece.x > window.innerWidth + 100) {
+          confetti.splice(index, 1);
+          continue;
+        }
+
+        drawConfetti(piece, deltaSeconds, now);
+      }
+
+      if (elapsed >= 4800) {
+        cleanupCelebration();
+        return;
+      }
+
+      frameId = window.requestAnimationFrame(animate);
+    };
+
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("orientationchange", resizeCanvas);
+    frameId = window.requestAnimationFrame(animate);
+  };
 
   if (consultationPopup) {
 
@@ -617,6 +841,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
       const status = form.querySelector(".form-status");
+      const isLeadForm = form.matches("#contactForm, .consultation-popup__form");
 
 
 
@@ -677,7 +902,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
           return;
-
         }
 
 
@@ -713,6 +937,7 @@ document.addEventListener("DOMContentLoaded", () => {
           status.textContent =
 
             "Sending your enquiry...";
+          status.classList.remove("form-status--success");
 
         }
 
@@ -754,11 +979,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
               if (status) {
 
-                status.textContent = "Thank you! Your enquiry has been submitted successfully.";
+                status.textContent = "🎉 Thank You! Your enquiry has been submitted successfully.";
+                status.classList.add("form-status--success");
 
               }
 
-
+              celebrateLeadSubmission();
 
               form.reset();
 
@@ -794,6 +1020,31 @@ document.addEventListener("DOMContentLoaded", () => {
 
           }
 
+          if (isLeadForm) {
+            try {
+              await submission;
+
+              if (status) {
+                status.textContent = "🎉 Thank You! Your enquiry has been submitted successfully.";
+                status.classList.add("form-status--success");
+              }
+
+              celebrateLeadSubmission();
+              form.reset();
+              form.querySelectorAll(".is-valid, .is-invalid").forEach(field => {
+                field.classList.remove("is-valid", "is-invalid");
+              });
+            } catch (error) {
+              console.error("Form submission error:", error);
+
+              if (status) {
+                status.textContent = "We could not submit your enquiry. Please try again.";
+                status.classList.remove("form-status--success");
+              }
+            }
+
+            return;
+          }
 
 
           submission.catch(error => {
@@ -804,7 +1055,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 
-          // Preserve the existing contact form success behavior.
+          // Preserve the existing newsletter submission behavior.
 
           alert("Thank you! Your enquiry has been submitted successfully.");
 
@@ -817,6 +1068,11 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
           console.error("Form submission error:", error);
+
+          if (isLeadForm && status) {
+            status.textContent = "We could not submit your enquiry. Please try again.";
+            status.classList.remove("form-status--success");
+          }
 
 
 
